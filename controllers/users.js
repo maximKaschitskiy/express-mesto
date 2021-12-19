@@ -31,8 +31,12 @@ const getUserId = (req, res) => {
       res.status(200).send(user);
     })
     .catch((err) => {
-      res.status(500).send({ message: err });
-    });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Невалидный id' });
+      } else {
+        res.status(500).send({ message: err });
+    }
+  });
 };
 
 const updateUser = (req, res) => {
@@ -41,8 +45,13 @@ const updateUser = (req, res) => {
     {
       name: req.body.name,
       about: req.body.about,
+    },
+    {
+      new: true,
+      runValidators: true,
     }
   )
+  .orFail()
   .then((updUser) => {
     res.status(200).send(updUser);
   })
@@ -62,8 +71,13 @@ const updateAvatar = (req, res) => {
     req.user._id,
     {
       avatar: req.body.avatar,
+    },
+    {
+      new: true,
+      runValidators: true,
     }
   )
+  .orFail()
   .then((newAvatar) => {
     res.status(200).send(newAvatar);
   })
