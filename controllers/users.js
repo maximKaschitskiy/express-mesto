@@ -14,7 +14,7 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: "Переданы некорректные данные при создании" });
+        res.status(400).send({ message: 'Переданы некорректные данные при создании' });
       } else {
         res.status(500).send({ message: err });
       }
@@ -25,7 +25,7 @@ const getUserId = (req, res) => {
   User.findById(req.params.id)
     .then((user) => {
       if (user === null) {
-        res.status(404).send({ message: "Пользователь по указанному _id не найден" });
+        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
         return;
       }
       res.status(200).send(user);
@@ -35,8 +35,8 @@ const getUserId = (req, res) => {
         res.status(400).send({ message: 'Невалидный id' });
       } else {
         res.status(500).send({ message: err });
-    }
-  });
+      }
+    });
 };
 
 const updateUser = (req, res) => {
@@ -49,21 +49,21 @@ const updateUser = (req, res) => {
     {
       new: true,
       runValidators: true,
-    }
+    },
   )
-  .orFail()
-  .then((updUser) => {
-    res.status(200).send(updUser);
-  })
-  .catch((err) => {
-    if (err.name === 'ValidationError') {
-      res.status(400).send({ message: "Переданы некорректные данные при обновлении профиля" });
-    } else if (err.name === 'DocumentNotFoundError') {
-      res.status(404).send({ message: "Пользователь с указанным _id не найден" });
-    } else {
-      res.status(500).send({ message: err });
-    }
-  });
+    .orFail()
+    .then((updUser) => {
+      res.status(200).send(updUser);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+      } else if (err.name === 'DocumentNotFoundError') {
+        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
+      } else {
+        res.status(500).send({ message: err });
+      }
+    });
 };
 
 const updateAvatar = (req, res) => {
@@ -75,21 +75,21 @@ const updateAvatar = (req, res) => {
     {
       new: true,
       runValidators: true,
-    }
+    },
   )
-  .orFail()
-  .then((newAvatar) => {
-    res.status(200).send(newAvatar);
-  })
-  .catch((err) => {
-    if (err.name === 'ValidationError') {
-      res.status(400).send({ message: "Переданы некорректные данные при обновлении аватара" });
-    } else if (err.name === 'DocumentNotFoundError') {
-      res.status(404).send({ message: "Пользователь с указанным _id не найден" });
-    } else {
-      res.status(500).send({ message: err });
-    }
-  });
+    .orFail()
+    .then((newAvatar) => {
+      res.status(200).send(newAvatar);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+      } else if (err.name === 'DocumentNotFoundError') {
+        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
+      } else {
+        res.status(500).send({ message: err });
+      }
+    });
 };
 
 module.exports = {
