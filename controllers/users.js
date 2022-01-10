@@ -1,45 +1,55 @@
 const User = require('../models/users');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-const getUsers = (req, res) => {
+const { NODE_ENV, JWT_SECRET } = process.env;
+
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch((err) => res.status(500).send(err));
+    .catch((err) => {
+      next(err);
+    });
 };
 
-const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+const createUser = async (req, res, next) => {
+  const { name, about, avatar, email, password } = req.body;
+  const hash = await bcrypt.hash(password, 10);
+  User.create({ name, about, avatar, email, password: hash })
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при создании' });
-      } else {
-        res.status(500).send({ message: err });
-      }
+      next(err);
     });
 };
 
-const getUserId = (req, res) => {
+const getCurrentUserInfo = (req, res, next) => {
+  const id = req.user._id;
+  User.findById(id)
+    .then((user) => {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+const getUserId = (req, res, next) => {
   User.findById(req.params.id)
     .then((user) => {
       if (user === null) {
-        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+        res.status(404).send({ message: 'Пользователь не найден' });
         return;
       }
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Невалидный id' });
-      } else {
-        res.status(500).send({ message: err });
-      }
+      next(err);
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     {
@@ -51,22 +61,15 @@ const updateUser = (req, res) => {
       runValidators: true,
     },
   )
-    .orFail()
     .then((updUser) => {
       res.status(200).send(updUser);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
-      } else if (err.name === 'DocumentNotFoundError') {
-        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
-      } else {
-        res.status(500).send({ message: err });
-      }
+      next(err);
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     {
@@ -77,21 +80,35 @@ const updateAvatar = (req, res) => {
       runValidators: true,
     },
   )
-    .orFail()
     .then((newAvatar) => {
       res.status(200).send(newAvatar);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
-      } else if (err.name === 'DocumentNotFoundError') {
-        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
-      } else {
-        res.status(500).send({ message: err });
-      }
+      next(err);
     });
 };
 
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(400).send({ message: 'Ошибка валидации' });
+  } else {
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+        { expiresIn: '7d' },
+      );
+      res.status(200).send({ token });
+    })
+    .catch((err) => {
+      next(err);
+    });
+  };
+};
+
+
 module.exports = {
-  getUsers, createUser, getUserId, updateUser, updateAvatar,
+  getUsers, createUser, getCurrentUserInfo, getUserId, updateUser, updateAvatar, login
 };
