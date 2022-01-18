@@ -54,6 +54,11 @@ const deleteCard = (req, res, next) => {
       }
     })
     .catch((err) => {
+      if (err.name === 'CastError') {
+        next(
+          new BadRequest('Переданы некорректные данные'),
+        );
+      }
       next(err);
     });
 };
@@ -67,7 +72,7 @@ const likeCard = async (req, res, next) => {
     .then((likes) => {
       if (!likes) {
         next(
-          new NotFound({ message: 'Не найдено' }),
+          new NotFound('Не найдено'),
         );
       } else {
         res.status(200).send(likes);
@@ -76,7 +81,7 @@ const likeCard = async (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(
-          new BadRequest({ message: 'Переданы некорректные данные' }),
+          new BadRequest('Переданы некорректные данные'),
         );
       }
       next(err);
@@ -92,7 +97,7 @@ const dislikeCard = async (req, res, next) => {
     .then((likes) => {
       if (!likes) {
         next(
-          new NotFound({ message: 'Не найдено' }),
+          new NotFound('Не найдено'),
         );
       }
       res.status(200).send(likes);
@@ -100,7 +105,7 @@ const dislikeCard = async (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(
-          new BadRequest({ message: 'Переданы некорректные данные' }),
+          new BadRequest('Переданы некорректные данные'),
         );
       }
       next(err);
